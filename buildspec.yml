@@ -13,14 +13,13 @@ phases:
 
   build:
     commands:
-      - echo Building the Docker image...
+      - echo Building and deploying brain-tasks-app to EKS...
       - docker build -t $REPOSITORY_URL:$IMAGE_TAG .
+      - docker push $REPOSITORY_URL:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing the Docker image...
-      - docker push $REPOSITORY_URL:$IMAGE_TAG
-      - echo Deploying to EKS...
+      - echo Updating kubeconfig for EKS...
       - aws eks update-kubeconfig --region us-east-1 --name brain-tasks-cluster
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
