@@ -23,7 +23,7 @@ phases:
       - echo "Logging in to Docker Hub..."
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - export REPOSITORY_URI=041124310096.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
-      - export IMAGE_TAG=latest
+      - export IMAGE_TAG=v1                # <-- Changed from latest to v1
 
   build:
     commands:
@@ -39,8 +39,8 @@ phases:
       - echo "Current kubeconfig file content:"
       - cat ~/.kube/config
       - echo "Deploying to EKS..."
-      - kubectl set image deployment/brain-tasks-deploy brain-tasks-container=$REPOSITORY_URI:$IMAGE_TAG
-      - kubectl rollout status deployment/brain-tasks-deploy
+      - kubectl set image deployment/brain-tasks-deployment brain-tasks-container=$REPOSITORY_URI:$IMAGE_TAG   # <-- deployment name fixed
+      - kubectl rollout status deployment/brain-tasks-deployment
 
 artifacts:
   files:
