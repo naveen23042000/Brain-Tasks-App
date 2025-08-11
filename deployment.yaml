@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brain-tasks-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brain-tasks
+  template:
+    metadata:
+      labels:
+        app: brain-tasks
+    spec:
+      containers:
+      - name: brain-tasks-container
+        image: 041124310096.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:v1
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+
+      - name: cloudwatch-agent
+        image: amazon/cloudwatch-agent:latest
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: cwagent-config
+          mountPath: /etc/cwagentconfig
+          readOnly: true
+        args:
+        - -config
+        - /etc/cwagentconfig/cwagentconfig.json
+        - -envconfig
+
+      volumes:
+      - name: nginx-logs
+        emptyDir: {}
+      - name: cwagent-config
+        configMap:
+          name: cwagentconfig
+
