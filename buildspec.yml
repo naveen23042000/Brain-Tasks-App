@@ -12,6 +12,8 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws --version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 041124310096.dkr.ecr.us-east-1.amazonaws.com
+      - echo "Logging in to Docker Hub..."
+      - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - export REPOSITORY_URI=041124310096.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
       - export IMAGE_TAG=latest
 
@@ -19,12 +21,15 @@ phases:
     commands:
       - echo "Building Docker image..."
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
+      - echo "Pushing Docker image to ECR..."
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo "Deploying to EKS..."
       - aws eks update-kubeconfig --region us-east-1 --name brain-tasks-cluster
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
+      # Add your deployment commands here, e.g. kubectl apply -f deployment.yaml
 
+artifacts:
+  files:
+    - '**/*'
