@@ -6,6 +6,14 @@ phases:
       - echo "Installing dependencies..."
       - apt-get update -y
       - apt-get install -y curl unzip
+      - echo "Installing AWS CLI v2..."
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - ./aws/install
+      - echo "Installing kubectl..."
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
 
   pre_build:
     commands:
@@ -26,9 +34,11 @@ phases:
     commands:
       - echo "Pushing Docker image to ECR..."
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo "Deploying to EKS..."
+      - echo "Updating kubeconfig for EKS cluster..."
       - aws eks update-kubeconfig --region us-east-1 --name brain-tasks-cluster
-      # Add your deployment commands here, e.g. kubectl apply -f deployment.yaml
+      - echo "Deploying to EKS..."
+      - kubectl set image deployment/brain-tasks-deploy brain-tasks-container=$REPOSITORY_URI:$IMAGE_TAG
+      - kubectl rollout status deployment/brain-tasks-deploy
 
 artifacts:
   files:
